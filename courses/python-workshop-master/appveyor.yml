@@ -1,0 +1,36 @@
+clone_depth: 5
+
+environment:
+
+  CONDA_PATH: "C:\\Miniconda3"
+
+  matrix:
+    - PYTHON_VERSION: "3.6"
+
+platform:
+    - x64
+
+install:
+    # Use the pre-installed Miniconda for the desired arch
+    - ps: if($env:PYTHON_VERSION -eq '3.6')
+            { $env:CONDA_PATH="$($env:CONDA_PATH)6" }
+    - ps: $env:CONDA_PATH="$($env:CONDA_PATH)-x64"
+    - ps: $env:path="$($env:CONDA_PATH);$($env:CONDA_PATH)\Scripts;$($env:CONDA_PATH)\Library\bin;C:\cygwin\bin;$($env:PATH)"
+    - cmd: conda config --set always_yes yes --set changeps1 no
+    - cmd: conda update -q conda
+    # Useful for debugging any issues with conda
+    - cmd: conda info -a
+    - cmd: sed -i -e s/python=3/python=%PYTHON_VERSION%/ environment.yml
+    - cmd: conda env create -q -f environment.yml
+    - cmd: activate unidata
+    - cmd: python --version
+    - cmd: python -m ipykernel install --user --name workshop
+    - cmd: conda list
+
+# Skip .NET project specific build phase.
+build: off
+
+test_script:
+    - cmd: python notebooks_preprocess.py
+    - cmd: python run_notebooks.py
+    #- cmd: python notebooks/Command_Line_Tools/synopticplot.py  --gfslevel 850 --gfsfield Relative_humidity_isobaric --savefig --imgformat jpg
